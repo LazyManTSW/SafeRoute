@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/index.css') }}">
+    <title>Події на карті</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+         crossorigin=""/>
+</head>
+<body>
+    <div id="top-navbar">
+        <button class="nav-button active" data-panel="events">
+            <span class="nav-icon">☰</span>
+            <span class="nav-label">Події</span>
+        </button>
+        <button class="nav-button" data-panel="settings">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Параметри</span>
+        </button>
+        <button class="nav-button" data-panel="developer">
+            <span class="nav-icon">🛠️</span>
+            <span class="nav-label">Розробник</span>
+        </button>
+        <button class="nav-button" data-panel="changes">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">Зміни</span>
+        </button>
+    </div>
+
+    <div id="side-panel">
+        <div class="panel-header">
+            <h1 id="panel-title">Події</h1>
+            <button class="close-button" id="close-panel">✕</button>
+        </div>
+
+        <div class="panel-content active" id="events-content">
+            <div class="events-list">
+
+            </div>
+        </div>
+
+        <div class="panel-content" id="settings-content">
+            <div class="settings-content">
+                <div class="setting-group">
+                    <h3>Відображення</h3>
+                    <div class="setting-item">
+                        <span class="setting-label">Показувати мітки на карті</span>
+                        <div class="toggle-switch active" data-setting="markers"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Показувати зони на карті</span>
+                        <div class="toggle-switch active" data-setting="polygon"></div>
+                    </div>
+                    <div class="setting-item">
+                        <span class="setting-label">Темна тема</span>
+                        <div class="toggle-switch" data-setting="dark-mode"></div>
+                    </div>
+                    <div class="setting-item">
+                        <button class="form-button secondary" id="load-map-btn" style="width: 100%;">
+                            📂 Завантажити карту
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-content" id="developer-content">
+            <div class="settings-content">
+                <div class="setting-group">
+                    <h3>Керування картою</h3>
+                    <div class="setting-item">
+                        <button class="form-button primary" id="save-map-btn" style="width: 100%;">
+                            💾 Зберегти всі зміни
+                        </button>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <h3>Мітки</h3>
+                    <div id="markers-list"></div>
+                </div>
+                <div class="setting-group">
+                    <h3>Полігони</h3>
+                    <div id="polygons-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-content" id="changes-content">
+            <div class="changes-content">
+                <div class="setting-group">
+                    <h3>Історія змін</h3>
+                    <div id="changes-list">
+                        <div class="empty-list">Завантаження...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="map-controls">
+        <button class="map-control-button" id="add-marker-btn" title="Додати мітку">
+            📍
+            <span class="map-control-tooltip">Додати мітку</span>
+        </button>
+        <button class="map-control-button" id="add-polygon-btn" title="Додати полігон">
+            ⬡
+            <span class="map-control-tooltip">Додати полігон</span>
+        </button>
+        <button class="map-control-button" id="zoom-in-btn" title="Наблизити">
+            ➕
+            <span class="map-control-tooltip">Наблизити</span>
+        </button>
+        <button class="map-control-button" id="zoom-out-btn" title="Віддалити">
+            ➖
+            <span class="map-control-tooltip">Віддалити</span>
+        </button>
+    </div>
+
+    <div class="polygon-hints" id="polygon-hints">
+        <div class="hints-header">
+            <span>⬡ Режим малювання</span>
+            <button class="hints-close" id="close-hints">✕</button>
+        </div>
+        <div class="hints-content">
+            <div class="hint-item">
+                <span class="hint-key">Клік</span>
+                <span class="hint-desc">Додати точку</span>
+            </div>
+            <div class="hint-item">
+                <span class="hint-key">Enter</span>
+                <span class="hint-desc">Завершити малювання</span>
+            </div>
+            <div class="hint-item">
+                <span class="hint-key">Ctrl + Z</span>
+                <span class="hint-desc">Скасувати останню точку</span>
+            </div>
+            <div class="hint-item">
+                <span class="hint-key">Escape</span>
+                <span class="hint-desc">Вийти з режиму</span>
+            </div>
+            <div class="hint-item">
+                <span class="hint-key">Перетягування</span>
+                <span class="hint-desc">Змінити позицію точки</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="context-menu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" id="context-edit">
+            <span>✏️</span>
+            <span>Редагувати</span>
+        </div>
+        <div class="context-menu-item delete" id="context-delete">
+            <span>🗑️</span>
+            <span>Видалити</span>
+        </div>
+    </div>
+
+    <div class="polygon-form-overlay" id="polygon-form-overlay">
+        <div class="polygon-form">
+            <h2>Налаштування полігону</h2>
+
+            <div class="form-group">
+                <label>Назва:</label>
+                <input type="text" id="polygon-name" placeholder="Введіть назву...">
+            </div>
+
+            <div class="form-group">
+                <label>Опис (необов'язково):</label>
+                <textarea id="polygon-description" placeholder="Додайте опис..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Колір:</label>
+                <div class="color-picker-group">
+                    <div class="color-option selected" data-color="#2196F3" style="background: #2196F3;"></div>
+                    <div class="color-option" data-color="#4CAF50" style="background: #4CAF50;"></div>
+                    <div class="color-option" data-color="#F44336" style="background: #F44336;"></div>
+                    <div class="color-option" data-color="#FF9800" style="background: #FF9800;"></div>
+                    <div class="color-option" data-color="#9C27B0" style="background: #9C27B0;"></div>
+                    <div class="color-option" data-color="#FFEB3B" style="background: #FFEB3B;"></div>
+                    <div class="color-option" data-color="#00BCD4" style="background: #00BCD4;"></div>
+                    <div class="color-option" data-color="#E91E63" style="background: #E91E63;"></div>
+                    <div class="color-option" data-color="#795548" style="background: #795548;"></div>
+                    <div class="color-option" data-color="#607D8B" style="background: #607D8B;"></div>
+                    <div class="color-option" data-color="#000000" style="background: #000000;"></div>
+                    <div class="color-option" data-color="#9E9E9E" style="background: #9E9E9E;"></div>
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button class="form-button secondary" id="cancel-polygon-btn">Скасувати</button>
+                <button class="form-button primary" id="save-polygon-btn">Зберегти</button>
+            </div>
+        </div>
+    </div>
+
+<div class="marker-form-overlay" id="marker-form-overlay">
+    <div class="marker-form">
+        <h2>Налаштування мітки</h2>
+
+        <div class="form-group">
+            <label>Назва:</label>
+            <input type="text" id="marker-name" placeholder="Введіть назву події...">
+        </div>
+
+        <div class="form-group">
+            <label>Опис (необов'язково):</label>
+            <textarea id="marker-description" placeholder="Додайте опис події..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Джерело (посилання):</label>
+            <input type="text" id="marker-source" placeholder="https://example.com">
+            <div class="form-error" id="source-error">⚠️ Введіть правильне посилання (наприклад: https://example.com)</div>
+        </div>
+
+        <div class="form-group">
+            <label>Іконка:</label>
+            <div class="icon-picker-group">
+                <div class="icon-option selected" data-icon="📍">
+                    <span class="icon-preview">📍</span>
+                </div>
+                <div class="icon-option" data-icon="ℹ️">
+                    <span class="icon-preview">ℹ️</span>
+                </div>
+                <div class="icon-option" data-icon="⚠️">
+                    <span class="icon-preview">⚠️</span>
+                </div>
+                <div class="icon-option" data-icon="🏠">
+                    <span class="icon-preview">🏠</span>
+                </div>
+                <div class="icon-option" data-icon="🏢">
+                    <span class="icon-preview">🏢</span>
+                </div>
+                <div class="icon-option" data-icon="⭐">
+                    <span class="icon-preview">⭐</span>
+                </div>
+                <div class="icon-option" data-icon="❤️">
+                    <span class="icon-preview">❤️</span>
+                </div>
+                <div class="icon-option" data-icon="💥">
+                    <span class="icon-preview">💥</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Колір фону:</label>
+            <div class="color-picker-group">
+                <div class="color-option selected" data-color="#2196F3" style="background: #2196F3;"></div>
+                <div class="color-option" data-color="#4CAF50" style="background: #4CAF50;"></div>
+                <div class="color-option" data-color="#F44336" style="background: #F44336;"></div>
+                <div class="color-option" data-color="#FF9800" style="background: #FF9800;"></div>
+                <div class="color-option" data-color="#9C27B0" style="background: #9C27B0;"></div>
+                <div class="color-option" data-color="#FFEB3B" style="background: #FFEB3B;"></div>
+                <div class="color-option" data-color="#00BCD4" style="background: #00BCD4;"></div>
+                <div class="color-option" data-color="#E91E63" style="background: #E91E63;"></div>
+                <div class="color-option" data-color="#795548" style="background: #795548;"></div>
+                <div class="color-option" data-color="#607D8B" style="background: #607D8B;"></div>
+                <div class="color-option" data-color="#000000" style="background: #000000;"></div>
+                <div class="color-option" data-color="#9E9E9E" style="background: #9E9E9E;"></div>
+            </div>
+        </div>
+
+        <div class="form-buttons">
+            <button class="form-button secondary" id="cancel-marker-btn">Скасувати</button>
+            <button class="form-button primary" id="save-marker-btn">Зберегти</button>
+        </div>
+    </div>
+</div>
+<div class="comment-form-overlay" id="comment-form-overlay">
+    <div class="comment-form">
+        <h2>💾 Збереження карти</h2>
+
+        <div class="form-group">
+            <label>Коментар до змін (обов'язково):</label>
+            <textarea id="save-comment" placeholder="Опишіть що змінилося: додано нові мітки, оновлено полігони тощо..." rows="4"></textarea>
+        </div>
+
+        <div class="form-buttons">
+            <button class="form-button secondary" id="cancel-save-btn">Скасувати</button>
+            <button class="form-button primary" id="confirm-save-btn">Зберегти</button>
+        </div>
+    </div>
+</div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+       crossorigin="">
+    </script>
+    <script>
+    const map = L.map('map', {
+        center: [48.6201157, 22.3085117],
+        zoom: 13,
+        zoomControl: false
+    });
+
+    const lightLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        className: 'dark-map-filter'
+    });
+
+    const darkLabelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '',
+        className: 'dark-map-filter'
+    });
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
