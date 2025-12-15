@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/index.css') }}">
-    <title>Події на карті</title>
+    <title>SafeRoute</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
          crossorigin=""/>
@@ -159,48 +159,54 @@
         </div>
     </div>
 
-    <div class="polygon-form-overlay" id="polygon-form-overlay">
-        <div class="polygon-form">
+<div class="polygon-form-overlay" id="polygon-form-overlay">
+    <div class="polygon-form">
+        <div class="form-header">
             <h2>Налаштування полігону</h2>
+            <button class="form-close-btn" id="close-polygon-form">✕</button>
+        </div>
 
-            <div class="form-group">
-                <label>Назва:</label>
-                <input type="text" id="polygon-name" placeholder="Введіть назву...">
-            </div>
+        <div class="form-group">
+            <label>Назва:</label>
+            <input type="text" id="polygon-name" placeholder="Введіть назву...">
+        </div>
 
-            <div class="form-group">
-                <label>Опис (необов'язково):</label>
-                <textarea id="polygon-description" placeholder="Додайте опис..."></textarea>
-            </div>
+        <div class="form-group">
+            <label>Опис (необов'язково):</label>
+            <textarea id="polygon-description" placeholder="Додайте опис..."></textarea>
+        </div>
 
-            <div class="form-group">
-                <label>Колір:</label>
-                <div class="color-picker-group">
-                    <div class="color-option selected" data-color="#2196F3" style="background: #2196F3;"></div>
-                    <div class="color-option" data-color="#4CAF50" style="background: #4CAF50;"></div>
-                    <div class="color-option" data-color="#F44336" style="background: #F44336;"></div>
-                    <div class="color-option" data-color="#FF9800" style="background: #FF9800;"></div>
-                    <div class="color-option" data-color="#9C27B0" style="background: #9C27B0;"></div>
-                    <div class="color-option" data-color="#FFEB3B" style="background: #FFEB3B;"></div>
-                    <div class="color-option" data-color="#00BCD4" style="background: #00BCD4;"></div>
-                    <div class="color-option" data-color="#E91E63" style="background: #E91E63;"></div>
-                    <div class="color-option" data-color="#795548" style="background: #795548;"></div>
-                    <div class="color-option" data-color="#607D8B" style="background: #607D8B;"></div>
-                    <div class="color-option" data-color="#000000" style="background: #000000;"></div>
-                    <div class="color-option" data-color="#9E9E9E" style="background: #9E9E9E;"></div>
-                </div>
-            </div>
-
-            <div class="form-buttons">
-                <button class="form-button secondary" id="cancel-polygon-btn">Скасувати</button>
-                <button class="form-button primary" id="save-polygon-btn">Зберегти</button>
+        <div class="form-group">
+            <label>Колір:</label>
+            <div class="color-picker-group">
+                <div class="color-option selected" data-color="#2196F3" style="background: #2196F3;"></div>
+                <div class="color-option" data-color="#4CAF50" style="background: #4CAF50;"></div>
+                <div class="color-option" data-color="#F44336" style="background: #F44336;"></div>
+                <div class="color-option" data-color="#FF9800" style="background: #FF9800;"></div>
+                <div class="color-option" data-color="#9C27B0" style="background: #9C27B0;"></div>
+                <div class="color-option" data-color="#FFEB3B" style="background: #FFEB3B;"></div>
+                <div class="color-option" data-color="#00BCD4" style="background: #00BCD4;"></div>
+                <div class="color-option" data-color="#E91E63" style="background: #E91E63;"></div>
+                <div class="color-option" data-color="#795548" style="background: #795548;"></div>
+                <div class="color-option" data-color="#607D8B" style="background: #607D8B;"></div>
+                <div class="color-option" data-color="#000000" style="background: #000000;"></div>
+                <div class="color-option" data-color="#9E9E9E" style="background: #9E9E9E;"></div>
             </div>
         </div>
+
+        <div class="form-buttons">
+            <button class="form-button secondary" id="cancel-polygon-btn">Скасувати</button>
+            <button class="form-button primary" id="save-polygon-btn">Зберегти</button>
+        </div>
     </div>
+</div>
 
 <div class="marker-form-overlay" id="marker-form-overlay">
     <div class="marker-form">
-        <h2>Налаштування мітки</h2>
+        <div class="form-header">
+            <h2>Налаштування мітки</h2>
+            <button class="form-close-btn" id="close-marker-form">✕</button>
+        </div>
 
         <div class="form-group">
             <label>Назва:</label>
@@ -274,7 +280,10 @@
 </div>
 <div class="comment-form-overlay" id="comment-form-overlay">
     <div class="comment-form">
-        <h2>💾 Збереження карти</h2>
+        <div class="form-header">
+            <h2>💾 Збереження карти</h2>
+            <button class="form-close-btn" id="close-comment-form">✕</button>
+        </div>
 
         <div class="form-group">
             <label>Коментар до змін (обов'язково):</label>

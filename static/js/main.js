@@ -43,13 +43,10 @@ const saveMarkerBtn = document.getElementById('save-marker-btn');
 const cancelSaveBtn = document.getElementById('cancel-save-btn');
 const confirmSaveBtn = document.getElementById('confirm-save-btn');
 const iconOptions = document.querySelectorAll('.icon-option');
+const closePolygonFormBtn = document.getElementById('close-polygon-form');
+const closeMarkerFormBtn = document.getElementById('close-marker-form');
+const closeCommentFormBtn = document.getElementById('close-comment-form');
 
-// ============================================
-// ФУНКЦІЇ ДЛЯ ЗБЕРЕЖЕННЯ НАЛАШТУВАНЬ
-// Додайте цей код на ПОЧАТОК файла main.js (після оголошення змінних)
-// ============================================
-
-// Функція для збереження налаштувань
 function saveSettings() {
     const settings = {
         darkMode: document.body.classList.contains('dark-mode'),
@@ -61,7 +58,7 @@ function saveSettings() {
     console.log('Налаштування збережено:', settings);
 }
 
-// Функція для завантаження налаштувань
+
 function loadSettings() {
     const savedSettings = localStorage.getItem('mapSettings');
     
@@ -74,11 +71,11 @@ function loadSettings() {
         const settings = JSON.parse(savedSettings);
         console.log('Налаштування завантажено:', settings);
         
-        // Застосовуємо темну тему
+       
         if (settings.darkMode) {
             document.body.classList.add('dark-mode');
             
-            // Переключаємо карту на темну
+
             map.removeLayer(currentMapLayer);
             if (currentLabelsLayer) {
                 map.removeLayer(currentLabelsLayer);
@@ -88,11 +85,11 @@ function loadSettings() {
             currentMapLayer = darkLayer;
             currentLabelsLayer = darkLabelsLayer;
             
-            // Оновлюємо toggle
+          
             document.querySelector('.toggle-switch[data-setting="dark-mode"]').classList.add('active');
         }
         
-        // Застосовуємо налаштування маркерів
+       
         const markersToggle = document.querySelector('.toggle-switch[data-setting="markers"]');
         if (settings.showMarkers) {
             markersToggle.classList.add('active');
@@ -100,7 +97,7 @@ function loadSettings() {
             markersToggle.classList.remove('active');
         }
         
-        // Застосовуємо налаштування полігонів
+        
         const polygonsToggle = document.querySelector('.toggle-switch[data-setting="polygon"]');
         if (settings.showPolygons) {
             polygonsToggle.classList.add('active');
@@ -112,11 +109,6 @@ function loadSettings() {
         console.error('Помилка при завантаженні налаштувань:', e);
     }
 }
-
-// ============================================
-// ОНОВЛЕННЯ ІСНУЮЧОГО КОДУ
-// Знайдіть блок з toggleSwitches.forEach і ЗАМІНІТЬ його на цей:
-// ============================================
 
 
 function isValidURL(string) {
@@ -575,6 +567,10 @@ cancelPolygonBtn.addEventListener('click', () => {
     map.getContainer().style.cursor = '';
 });
 
+closePolygonFormBtn.addEventListener('click', () => {
+    cancelPolygonBtn.click();
+});
+
 cancelMarkerBtn.addEventListener('click', () => {
     markerFormOverlay.classList.remove('active');
     pendingMarkerData = null;
@@ -583,13 +579,17 @@ cancelMarkerBtn.addEventListener('click', () => {
     map.getContainer().style.cursor = '';
 });
 
-polygonFormOverlay.addEventListener('click', (e) => {
+closeMarkerFormBtn.addEventListener('click', () => {
+    cancelMarkerBtn.click();
+});
+
+polygonFormOverlay.addEventListener('dblclick', (e) => {
     if (e.target === polygonFormOverlay) {
         cancelPolygonBtn.click();
     }
 });
 
-markerFormOverlay.addEventListener('click', (e) => {
+markerFormOverlay.addEventListener('dblclick', (e) => {
     if (e.target === markerFormOverlay) {
         cancelMarkerBtn.click();
     }
@@ -620,16 +620,9 @@ document.addEventListener('keydown', (e) => {
                 dashArray: '5, 5'
             }).addTo(map);
         }
-    } else if (polygonMode) {
-        e.preventDefault();
-        clearTempPolygon();
-        polygonMode = false;
-        addPolygonBtn.classList.remove('active');
-        polygonHints.classList.remove('active');
-        map.getContainer().style.cursor = '';
     }
-
-    if (e.key === 'Enter' && polygonMode && polygonPoints.length >= 3) {
+    
+    else if (e.key === 'Enter' && polygonMode && polygonPoints.length >= 3) {
         e.preventDefault();
 
         pendingPolygonData = {
@@ -652,7 +645,7 @@ document.addEventListener('keydown', (e) => {
         polygonNameInput.focus();
     }
 
-    if (e.key === 'Escape') {
+    else if (e.key === 'Escape') {
         if (polygonFormOverlay.classList.contains('active')) {
             e.preventDefault();
             cancelPolygonBtn.click();
@@ -664,6 +657,7 @@ document.addEventListener('keydown', (e) => {
             clearTempPolygon();
             polygonMode = false;
             addPolygonBtn.classList.remove('active');
+            polygonHints.classList.remove('active');
             map.getContainer().style.cursor = '';
         } else if (markerMode) {
             e.preventDefault();
@@ -970,11 +964,24 @@ saveMarkerBtn.onclick = async function() {
                     customColor: pendingMarkerData.color,
                     dbId: dbId
                 }).addTo(map);
-
-                marker.on('contextmenu', (e) => {
-                    showContextMenu(e, 'marker', marker);
+                marker.on('click', () => {
+                    const eventsButton = document.querySelector('.nav-button[data-panel="events"]');
+                    if (!eventsButton.classList.contains('active')) {
+                        eventsButton.click();
+                    }
+                    
+                    setTimeout(() => {
+                        const eventCard = document.querySelector(`.event-card[data-marker-id="${dbId}"]`);
+                        if (eventCard) {
+                            eventCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            eventCard.classList.add('highlight');
+                            
+                            setTimeout(() => {
+                                eventCard.classList.remove('highlight');
+                            }, 2000);
+                        }
+                    }, 100);
                 });
-
                 let popupContent = `<b>${name}</b><br>`;
                 if (description) popupContent += `${description}<br>`;
                 if (source) popupContent += `<a href="${source}" target="_blank">🔗 Source</a><br>`;
@@ -1239,7 +1246,27 @@ async function loadMap() {
             marker.on('contextmenu', (e) => {
                 showContextMenu(e, 'marker', marker);
             });
-
+            marker.on('click', () => {
+                // Відкриваємо панель подій
+                const eventsButton = document.querySelector('.nav-button[data-panel="events"]');
+                if (!eventsButton.classList.contains('active')) {
+                    eventsButton.click();
+                }
+                
+                // Знаходимо відповідну картку події і підсвічуємо її
+                setTimeout(() => {
+                    const eventCard = document.querySelector(`.event-card[data-marker-id="${m.id}"]`);
+                    if (eventCard) {
+                        eventCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        eventCard.classList.add('highlight');
+                        
+                        setTimeout(() => {
+                            eventCard.classList.remove('highlight');
+                        }, 2000);
+                    }
+                }, 100);
+            });
+            
             let popupContent = `<b>${m.name}</b><br>`;
             if (m.description) popupContent += `${m.description}<br>`;
             if (m.source) popupContent += `<a href="${m.source}" target="_blank">🔗 Source</a><br>`;
@@ -1380,6 +1407,7 @@ function addEventToList(eventData) {
 
     const eventCard = document.createElement('div');
     eventCard.className = 'event-card';
+    eventCard.dataset.markerId = eventData.markerId;
 
     const now = new Date();
     const formattedDate = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
@@ -1390,6 +1418,10 @@ function addEventToList(eventData) {
 
     const backgroundColor = eventData.color || '#2196F3';
 
+    const coordinates = eventData.coordinates 
+        ? `<div class="event-coordinates">📍 ${eventData.coordinates.lat.toFixed(6)}, ${eventData.coordinates.lng.toFixed(6)}</div>`
+        : '';
+
     eventCard.innerHTML = `
         <div class="event-header">
             <div class="event-icon" style="background-color: ${backgroundColor};">${eventData.icon || 'ℹ️'}</div>
@@ -1399,6 +1431,7 @@ function addEventToList(eventData) {
                 <div class="event-meta">
                     ${sourceLink}
                 </div>
+                ${coordinates}
                 <div class="event-updated">Updated ${formattedDate}</div>
             </div>
         </div>
@@ -1418,12 +1451,43 @@ function loadEventsFromMarkers() {
 
     savedMarkers.forEach(marker => {
         const opts = marker.options;
+        const latlng = marker.getLatLng();
+        
         addEventToList({
             name: opts.title || 'Untitled',
             icon: opts.customIcon || '📍',
             source: opts.source || '',
             description: opts.description || '',
-            color: opts.customColor || '#2196F3'
+            color: opts.customColor || '#2196F3',
+            coordinates: latlng,
+            markerId: opts.dbId
+        });
+    });
+
+    // Додаємо обробники кліків на картки подій
+    document.querySelectorAll('.event-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const markerId = card.dataset.markerId;
+            const marker = savedMarkers.find(m => m.options.dbId === markerId);
+            
+            if (marker) {
+                // Відкриваємо popup маркера
+                marker.openPopup();
+                
+                // Центруємо карту на маркері
+                map.setView(marker.getLatLng(), Math.max(map.getZoom(), 15), {
+                    animate: true,
+                    duration: 0.5
+                });
+                
+                // Підсвічуємо картку події
+                document.querySelectorAll('.event-card').forEach(c => c.classList.remove('highlight'));
+                card.classList.add('highlight');
+                
+                setTimeout(() => {
+                    card.classList.remove('highlight');
+                }, 2000);
+            }
         });
     });
 }
@@ -1437,7 +1501,11 @@ cancelSaveBtn.addEventListener('click', () => {
     saveCommentInput.value = '';
 });
 
-commentFormOverlay.addEventListener('click', (e) => {
+closeCommentFormBtn.addEventListener('click', () => {
+    cancelSaveBtn.click();
+});
+
+commentFormOverlay.addEventListener('dbclick', (e) => {
     if (e.target === commentFormOverlay) {
         cancelSaveBtn.click();
     }
@@ -1451,7 +1519,7 @@ saveCommentInput.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    loadSettings();  // ДОДАНО: Завантажуємо налаштування
+    loadSettings();  
     loadMap();
     toggleAddButtons(false);
 });
