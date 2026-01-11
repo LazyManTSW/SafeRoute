@@ -753,10 +753,6 @@ body.dark-mode .event-text {
     border: none !important;
 }
 
-.dark-map-filter {
-    filter: invert(100%) hue-rotate(180deg) brightness(0.9) contrast(0.9);
-}
-
 .dev-item {
     padding: 12px;
     margin-bottom: 8px;

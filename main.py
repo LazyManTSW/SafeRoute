@@ -228,10 +228,25 @@ def handle_errors(f):
 
 StorageManager.initialize()
 
+def read_maptiler_api_key():
+    try:
+        api_file_path = os.path.join('dependencies', 'MaptilerAPI.txt')
+        if os.path.exists(api_file_path):
+            with open(api_file_path, 'r', encoding='utf-8') as f:
+                api_key = f.read().strip()
+                logger.info("MapTiler API ключ успішно завантажено")
+                return api_key
+        else:
+            logger.warning(f"Файл {api_file_path} не знайдено")
+            return ''
+    except Exception as e:
+        logger.error(f"Помилка читання MapTiler API: {e}")
+        return ''
 
 @app.route('/')
 def hello_world():
-    return render_template('index.html')
+    maptiler_key = read_maptiler_api_key()
+    return render_template('index.html', maptiler_api_key=maptiler_key)
 
 
 @app.route('/api/add-marker', methods=['POST'])
